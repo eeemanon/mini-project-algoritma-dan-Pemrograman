@@ -1,0 +1,939 @@
+---
+title: "Mini Project Algoritma dan Pemrograman"
+output: html_document
+date: "`r Sys.Date()`"
+---
+
+Anggota kelompok
+
+-   BERLIYAN FITRIANSYAH(3338250021)
+-   BILHADI MUHAMMAD (3338250028)
+-   ABDIKA URUPALA (3338250055)
+
+# Pendahuluan
+
+Mini project ini bertujuan untuk merangkum kembali seluruh materi yang telah dipelajari dalam satu dokumen terstruktur, sekaligus menunjukkan penerapannya menggunakan bahasa pemrograman R. Setiap topik akan dijelaskan secara singkat dengan definisi, prinsip kerja, dan studi kasus kecil yang diimplementasikan dalam bentuk kode. Pendekatan ini diharapkan dapat memperkuat pemahaman konsep sekaligus melatih kemampuan menghubungkan teori algoritma dengan praktik pemrograman nyata.
+
+# 1.Divide,Conquer,Combine
+
+Divide-Conquer-Combine dijelaskan sebagai teknik memecah masalah besar menjadi sub‑masalah kecil (divide), menyelesaikannya biasanya secara rekursif (conquer), lalu menggabungkan solusi sub‑masalah menjadi solusi akhir (combine).
+
+### A. Branching Factor
+
+adalah jumlah sub-bagian yang dihasilkan saat memecah masalah menjadi bagian-bagian yang lebih kecil pada langkah Divide.Semakin banyak bagian yang dihasilkan pada setiap langkah, semakin tinggi Branching Factor-nya.
+
+#### studi kasus:
+
+```{r}
+angka <- c(3, 5, 2, 7)
+
+# Fungsi rekursif dengan branching factor = 2
+jumlah_dc <- function(x) {
+  n <- length(x)
+  
+  # basis: kalau hanya 1 elemen, langsung kembalikan nilainya
+  if (n == 1) {
+    return(x[1])
+  }
+  
+  # divide: bagi dua bagian
+  mid <- floor(n / 2)
+  kiri  <- x[1:mid]
+  kanan <- x[(mid + 1):n]
+  
+  # conquer + combine: panggil diri sendiri untuk kiri & kanan, lalu jumlahkan
+  jumlah_dc(kiri) + jumlah_dc(kanan)
+}
+
+jumlah_dc(angka)
+sum(angka) 
+```
+
+**output**
+
+```         
+[1] 17
+[1] 17
+```
+
+Pada setiap pemanggilan rekursif selama panjang vektor lebih dari 1, fungsi selalu membuat dua panggilan lagi, yaitu ke bagian kiri dan bagian kanan. Pola “selalu bercabang dua” ini berarti algoritma memiliki branching factor sebesar 2 di setiap level pemecahan. Dengan membagi data menjadi dua bagian yang lebih kecil berulang kali, proses penjumlahan menjadi terstruktur seperti pohon: dari elemen tunggal di bawah, hasilnya naik dan digabung sampai ke akar. Ini menggambarkan dengan jelas konsep divide, conquer, dan combine dalam bentuk yang sederhana.
+
+### B. Balance
+
+Balance berarti memecah masalah menjadi bagian-bagian yang seimbang (dalam hal jumlah elemen atau kompleksitasnya) pada langkah Divide.Pembagian yang seimbang membantu memastikan bahwa proses di setiap sub-bagianmemiliki beban yang merata, sehingga meningkatkan efisiensi.Ketika array ganjil dibagi secara balance, perbedaan jumlah elemen antara bagian-bagianyang dihasilkan tidak boleh lebih dari 1 elemen.
+
+#### studi kasus:
+
+```{r}
+nilai <- c(80, 60, 95, 70, 50, 90)
+
+# Fungsi merge sort dengan pembagian seimbang (balance)
+merge_sort_balance <- function(x) {
+  n <- length(x)
+  if (n <= 1) return(x)      # basis
+  
+  mid <- floor(n / 2)        # bagi jadi 2 bagian hampir sama besar
+  kiri  <- merge_sort_balance(x[1:mid])
+  kanan <- merge_sort_balance(x[(mid + 1):n])
+  
+  # gabungkan dua bagian yang sudah terurut
+  hasil <- c()
+  i <- 1; j <- 1
+  while (i <= length(kiri) && j <= length(kanan)) {
+    if (kiri[i] <= kanan[j]) {
+      hasil <- c(hasil, kiri[i]); i <- i + 1
+    } else {
+      hasil <- c(hasil, kanan[j]); j <- j + 1
+    }
+  }
+  if (i <= length(kiri))  hasil <- c(hasil, kiri[i:length(kiri)])
+  if (j <= length(kanan)) hasil <- c(hasil, kanan[j:length(kanan)])
+  hasil
+}
+
+merge_sort_balance(nilai)
+sort(nilai) 
+```
+
+**output:**
+
+```         
+[1] 50 60 70 80 90 95
+[1] 50 60 70 80 90 95
+```
+
+Kode merge_sort_balance menunjukkan bahwa data selalu dipecah menjadi dua bagian yang ukurannya hampir sama besar, lalu masing‑masing bagian diurutkan dan hasilnya digabung kembali, pola pembagian yang merata membembuat beban kerja di setiap rekursi seimbang.
+
+### C. Data Dependence of Divide Function
+
+Pada konsep ini, cara membagi masalah (pada langkah Divide) bergantung pada nilai-nilai data yang ada.Artinya, pembagian tidak hanya didasarkan pada jumlah elemen, tetapi juga bergantungpada nilai atau sifat data tersebut.
+
+#### studi kasus:
+
+```{r}
+# Data: harga buku yang sudah diurutkan
+harga <- c(30, 45, 60, 75, 90, 105, 120)
+
+# Binary search: divide function bergantung pada nilai data
+binary_search <- function(x, target) {
+  left  <- 1
+  right <- length(x)
+  
+  while (left <= right) {
+    mid <- floor((left + right) / 2)
+    
+    if (x[mid] == target) {
+      return(TRUE)           # elemen ditemukan
+    } else if (x[mid] < target) {
+      left <- mid + 1        # bagi ke bagian kanan
+    } else {
+      right <- mid - 1       # bagi ke bagian kiri
+    }
+  }
+  
+  FALSE                      # tidak ditemukan
+}
+
+binary_search(harga, 90)   
+binary_search(harga, 50)   
+```
+
+**output:**
+
+```         
+[1] TRUE
+[1] FALSE
+```
+
+Pada kode di atas, posisi pembagian (kiri atau kanan) selalu ditentukan oleh nilai elemen tengah dibanding nilai yang dicari (target). Artinya, fungsi divide tidak hanya melihat ukuran array,
+
+### D.Control Parallelism
+
+adalah pendekatan yang memungkinkan bagian-bagian dari masalah diproses secarabersamaan (paralel) setelah dibagi.Tujuannya adalah meningkatkan kecepatan pemrosesan dengan memanfaatkan sumberdaya komputasi secara bersamaan.
+
+#### studikasus:
+
+```{r}
+angka <- c(3, 5, 2, 7, 1, 4, 8)
+
+# PARALLEL: kiri & kanan bersamaan  
+sum_par <- function(x) {
+  mid <- floor(length(x)/2)
+  kiri  <- sum(x[1:mid])
+  kanan <- sum(x[(mid+1):length(x)])
+  # TIDAK ADA DELAY = paralel!
+  kiri + kanan
+}
+
+
+cat("\nParallel:\n") 
+sum_par(angka)
+```
+
+**output**
+
+```         
+Parallel:
+[1] 30
+```
+
+Fungsi sum_parallel membagi array menjadi dua bagian yang diproses bersamaan (tanpa menunggu satu sama lain) sebelum hasilnya digabungkan, sehingga menunjukkan konsep control parallelism di mana sub-masalah setelah divide dikerjakan secara paralel untuk mempercepat eksekusi total.
+
+## E. Sequentially
+
+adalah pendekatan yang memproses bagian-bagian dari masalah secara berurutan, satu persatu, setelah dibagi.
+
+#### studi kasus:
+
+membuat sequence tanggal dari 1 januari 2025 sampai 10 januari 2025
+
+```{r}
+start_date <- as.Date("2025-01-01")
+dates_seq <- seq(start_date, by="day", length.out=10)
+print(dates_seq)
+```
+
+**output:**
+
+```         
+[1] "2025-01-01" "2025-01-02" "2025-01-03" "2025-01-04" "2025-01-05" "2025-01-06"
+ [7] "2025-01-07" "2025-01-08" "2025-01-09" "2025-01-10"
+```
+
+seq() dengan objek Date memungkinkan generasi tanggal berurutan secara presisi tanpa loop manual, berguna untuk mengisi missing dates dalam dataset atau simulasi periode.
+
+# 2. Sorting
+
+Sorting (pengurutan) adalah proses menyusun elemen-elemen data sehingga tersusun dalam suatu urutan tertentu, misalnya dari yang terkecil ke terbesar (ascending) atau dari yang terbesar ke terkecil (descending). Sorting dipakai supaya data lebih mudah dicari, dianalisis, dan dibaca, misalnya mengurutkan nilai mahasiswa, harga barang, atau tanggal transaksi.
+
+## Comparison sort
+
+Algoritma sorting yang WAJIB pakai perbandingan antar elemen pakai operator \>, \<, \<=, \>=. Semua keputusan urutan berdasarkan hasil bandingkan dua elemen.
+
+### A. Bubble sort
+
+Bubble sort adalah algoritma pengurutan yang bekerja dengan cara membandingkan dua elemen yang bersebelahan dan menukarnya jika urutannya salah, sehingga pada setiap “penyisiran” elemen terbesar akan “menggelembung” ke posisi akhir array. Algoritma ini sangat sederhana dan mudah dipahami, tetapi tidak efisien untuk jumlah data yang besar karena melakukan banyak perbandingan dan pertukaran.
+
+#### studi kasus
+
+```{r}
+bubble_sort <- function(x) {
+  n <- length(x)
+  for (i in 1:(n - 1)) {
+    for (j in 1:(n - i)) {
+      if (x[j] > x[j + 1]) {
+        tmp <- x[j]
+        x[j] <- x[j + 1]
+        x[j + 1] <- tmp
+      }
+    }
+  }
+  x
+}
+
+nilai <- c(85, 92, 78, 95, 88)
+cat("Sebelum:", nilai, "\n")
+hasil_bubble <- bubble_sort(nilai)
+cat("Sesudah:", hasil_bubble, "\n")
+```
+
+**output:**
+
+```         
+Sebelum: 85 92 78 95 88 
+Sesudah: 78 85 88 92 95 
+```
+
+Hasil pengurutan menjadi 78, 85, 88, 92, 95, menunjukkan bahwa bubble sort mampu menyusun data dengan benar, tetapi prosesnya membutuhkan banyak langkah karena setiap elemen sering dibandingkan dan ditukar berulang kali. Algoritma ini cocok sebagai contoh pembelajaran konsep dasar sorting pada dataset kecil, namun kurang efisien untuk skala data yang lebih besar karena kompleksitas waktunya bersifat kuadrat.
+
+### b. Selection sort
+
+Selection sort adalah algoritma pengurutan yang membagi array menjadi dua bagian: bagian yang sudah terurut di depan dan bagian yang belum terurut di belakang. Pada setiap langkah, algoritma mencari elemen terkecil dari bagian yang belum terurut, kemudian menukarnya dengan elemen pertama di bagian tersebut sehingga secara bertahap membangun bagian yang terurut di awal array.
+
+#### studi kasus
+
+```{r}
+selection_sort <- function(x) {
+  n <- length(x)
+  for (i in 1:(n - 1)) {
+    min_idx <- i
+    for (j in (i + 1):n) {
+      if (x[j] < x[min_idx]) {
+        min_idx <- j
+      }
+    }
+    if (min_idx != i) {
+      tmp <- x[i]
+      x[i] <- x[min_idx]
+      x[min_idx] <- tmp
+    }
+  }
+  x
+}
+
+umur <- c(25, 30, 22, 35, 28)
+cat("Sebelum:", umur, "\n")
+hasil_selection <- selection_sort(umur)
+cat("Sesudah:", hasil_selection, "\n")
+```
+
+**output:**
+
+```         
+Sebelum: 25 30 22 35 28 
+Sesudah: 22 25 28 30 35 
+```
+
+Setelah diurutkan, umur menjadi 22, 25, 28, 30, 35, yang menunjukkan bahwa selection sort secara sistematis memilih nilai minimum dari bagian yang belum terurut. Dibandingkan bubble sort, jumlah pertukaran biasanya lebih sedikit karena setiap iterasi luar hanya melakukan maksimal satu swap. Namun, jumlah perbandingannya tetap banyak sehingga algoritma ini juga memiliki kompleksitas waktu kuadrat dan lebih cocok untuk dataset berukuran kecil atau untuk tujuan edukasi.
+
+### C. Insertion sort
+
+Insertion sort adalah algoritma pengurutan yang bekerja dengan cara membangun bagian yang sudah terurut di sisi kiri array, lalu menyisipkan setiap elemen baru ke posisi yang tepat dalam bagian terurut tersebut. Untuk menyisipkan elemen, algoritma menggeser elemen-elemen yang lebih besar satu langkah ke kanan hingga menemukan posisi yang sesuai bagi elemen yang akan dimasukkan.
+
+#### studi kasus
+
+```{r}
+insertion_sort <- function(x) {
+  n <- length(x)
+  for (i in 2:n) {
+    key <- x[i]
+    j <- i - 1
+    while (j >= 1 && x[j] > key) {
+      x[j + 1] <- x[j]
+      j <- j - 1
+    }
+    x[j + 1] <- key
+  }
+  x
+}
+
+skor <- c(100, 95, 110, 85, 105)
+cat("Sebelum:", skor, "\n")
+hasil_insertion <- insertion_sort(skor)
+cat("Sesudah:", hasil_insertion, "\n")
+```
+
+**output:**
+
+```         
+Sebelum: 100 95 110 85 105 
+Sesudah: 85 95 100 105 110 
+```
+
+Setelah diurutkan, skor menjadi 85, 95, 100, 105, 110, yang menggambarkan bagaimana insertion sort “menyisipkan” setiap nilai ke posisi yang tepat dalam bagian yang sudah terurut. Algoritma ini sangat efektif jika data awal sudah hampir terurut karena hanya membutuhkan sedikit pergeseran elemen. Namun, ketika data acak dan besar, jumlah perbandingan dan perpindahan elemen meningkat sehingga waktu eksekusinya juga menjadi kuadrat.
+
+### D. Merge Sort
+
+Merge sort adalah algoritma pengurutan berbasis strategi divide and conquer yang memecah array menjadi dua bagian lebih kecil secara rekursif sampai tiap bagian hanya berisi satu elemen, lalu menggabungkan kembali bagian-bagian kecil tersebut secara berurutan. Pada tahap penggabungan, elemen pertama dari masing-masing subarray dibandingkan dan elemen yang lebih kecil ditempatkan lebih dahulu dalam array hasil.
+
+#### studi kasus
+
+```{r}
+merge_vectors <- function(a, b) {
+  i <- j <- 1
+  res <- c()
+  while (i <= length(a) && j <= length(b)) {
+    if (a[i] <= b[j]) {
+      res <- c(res, a[i])
+      i <- i + 1
+    } else {
+      res <- c(res, b[j])
+      j <- j + 1
+    }
+  }
+  if (i <= length(a)) {
+    res <- c(res, a[i:length(a)])
+  }
+  if (j <= length(b)) {
+    res <- c(res, b[j:length(b)])
+  }
+  res
+}
+
+merge_sort <- function(x) {
+  if (length(x) <= 1) return(x)
+  mid <- length(x) %/% 2
+  left  <- merge_sort(x[1:mid])
+  right <- merge_sort(x[(mid + 1):length(x)])
+  merge_vectors(left, right)
+}
+
+penjualan <- c(120, 80, 150, 90, 110)
+cat("Sebelum:", penjualan, "\n")
+hasil_merge <- merge_sort(penjualan)
+cat("Sesudah:", hasil_merge, "\n")
+```
+
+**output:**
+
+```         
+Sebelum: 120 80 150 90 110 
+Sesudah: 80 90 110 120 150 
+```
+
+Nilai penjualan diurutkan menjadi 80, 90, 110, 120, 150, yang memperlihatkan cara merge sort menyelesaikan pengurutan dengan memecah data dan kemudian menggabungkannya kembali dalam keadaan terurut. Keunggulan utama merge sort adalah kompleksitas waktunya yang konsisten sekitar n log n dan sifatnya yang stabil, meskipun membutuhkan memori tambahan untuk menampung hasil penggabungan. Algoritma ini lebih sesuai digunakan untuk dataset yang lebih besar atau ketika kestabilan dalam pengurutan sangat dibutuhkan.
+
+### E. Quick Sort
+
+Quick sort adalah algoritma pengurutan divide and conquer yang memilih satu elemen sebagai pivot, kemudian membagi array menjadi dua bagian: elemen yang lebih kecil dari pivot di sebelah kiri dan yang lebih besar atau sama di sebelah kanan. Setelah partisi terbentuk, quick sort memanggil dirinya sendiri secara rekursif pada bagian kiri dan kanan hingga semua bagian terurut.
+
+#### studi kasus
+
+```{r}
+quick_sort <- function(x) {
+  n <- length(x)
+  if (n <= 1) return(x)
+  pivot <- x[n]
+  left  <- x[x < pivot]
+  right <- x[x >= pivot][1:(sum(x >= pivot) - 1)]
+  c(quick_sort(left), pivot, quick_sort(right))
+}
+
+harga <- c(150, 120, 180, 110, 160)
+cat("Sebelum:", harga, "\n")
+hasil_quick <- quick_sort(harga)
+cat("Sesudah:", hasil_quick, "\n")
+```
+
+**output:**
+
+```         
+Sebelum: 150 120 180 110 160 
+Sesudah: 110 120 150 160 180 
+```
+
+Hasil pengurutan adalah 110, 120, 150, 160, 180, yang menunjukkan bagaimana quick sort menggunakan pivot untuk memecah data menjadi subarray yang lebih kecil. Secara rata-rata, algoritma ini sangat efisien dengan kompleksitas waktu sekitar n log n dan sering dipakai dalam implementasi nyata. Namun, jika pemilihan pivot kurang baik (misalnya selalu memilih elemen yang membuat partisi sangat tidak seimbang), quick sort dapat mengalami penurunan performa menjadi kuadrat.
+
+## Non Comparison
+
+TIDAK pakai perbandingan sama sekali. Langsung hitung frekuensi atau urut berdasarkan digit/properti lain.
+
+### A. Counting Sort
+
+Counting sort adalah algoritma pengurutan non-comparison yang bekerja dengan cara menghitung berapa kali setiap nilai muncul, lalu menyusun kembali elemen berdasarkan frekuensi tersebut. Algoritma ini sangat cepat jika rentang nilai (range) kecil dan diketahui, karena tidak perlu membandingkan elemen satu per satu, tetapi hanya mengandalkan array hitung (count array).
+
+#### studi kasus
+
+```{R}
+counting_sort <- function(x) {
+  max_val <- max(x)
+  count <- integer(max_val)    # vektor hitung, awalnya semua 0
+  
+  # Hitung frekuensi tiap nilai
+  for (val in x) {
+    count[val] <- count[val] + 1
+  }
+  
+  # Susun ulang hasil
+  res <- c()
+  for (i in seq_along(count)) {
+    if (count[i] > 0) {
+      res <- c(res, rep(i, count[i]))
+    }
+  }
+  res
+}
+
+nilai_ujian <- c(5, 3, 1, 5, 3, 1, 1)
+cat("Sebelum:", nilai_ujian, "\n")
+hasil_counting <- counting_sort(nilai_ujian)
+cat("Sesudah:", hasil_counting, "\n")
+```
+
+**output:**
+
+```         
+Sebelum: 5 3 1 5 3 1 1 
+Sesudah: 1 1 1 3 3 5 5 
+```
+
+Hasil pengurutan adalah 1, 1, 1, 3, 3, 5, 5, yang menunjukkan bahwa counting sort menghasilkan data terurut dengan memanfaatkan frekuensi kemunculan setiap nilai. Algoritma ini sangat efisien untuk data diskrit dengan rentang nilai kecil, tetapi menjadi kurang praktis jika nilai bisa sangat besar atau jarang, karena ukuran array hitung akan membengkak.
+
+### B. Radix Sort
+
+Radix sort adalah algoritma pengurutan non-comparison yang mengurutkan bilangan berdasarkan digit demi digit, biasanya dimulai dari digit paling rendah (least significant digit) menuju digit yang lebih tinggi. Pada setiap langkah digit, radix sort biasanya menggunakan algoritma stabil seperti counting sort untuk mengelompokkan angka sesuai nilai digit tersebut, sehingga setelah semua digit diproses, data menjadi terurut sepenuhnya.
+
+#### studi kasus
+
+```{r}
+# Counting sort khusus per digit (LSD)
+counting_by_digit <- function(x, exp) {
+  n <- length(x)
+  output <- integer(n)
+  count <- integer(10)  # digit 0-9
+  
+  digit <- (x %/% exp) %% 10  # ambil digit sesuai eksponen
+  
+  # Hitung frekuensi tiap digit
+  for (d in digit) {
+    count[d + 1] <- count[d + 1] + 1
+  }
+  
+  # Prefix sum agar tahu posisi akhir tiap digit
+  for (i in 2:10) {
+    count[i] <- count[i] + count[i - 1]
+  }
+  
+  # Susun dari belakang (supaya stabil)
+  for (i in n:1) {
+    d <- digit[i] + 1
+    output[count[d]] <- x[i]
+    count[d] <- count[d] - 1
+  }
+  
+  output
+}
+
+radix_sort <- function(x) {
+  max_val <- max(x)
+  exp <- 1
+  # Ulangi untuk satuan, puluhan, ratusan, dst.
+  while (max_val %/% exp > 0) {
+    x <- counting_by_digit(x, exp)
+    exp <- exp * 10
+  }
+  x
+}
+
+id_transaksi <- c(170, 45, 75, 90, 802, 24, 2, 66)
+cat("Sebelum:", id_transaksi, "\n")
+hasil_radix <- radix_sort(id_transaksi)
+cat("Sesudah:", hasil_radix, "\n")
+```
+
+**output:**
+
+```         
+Sebelum: 170 45 75 90 802 24 2 66 
+Sesudah: 2 24 45 66 75 90 170 802 
+```
+
+Setelah diurutkan, nomor transaksi menjadi 2, 24, 45, 66, 75, 90, 170, 802, yang menggambarkan bagaimana radix sort memproses angka berdasarkan digit satuan, lalu puluhan, dan terakhir ratusan. Karena tidak mengandalkan perbandingan langsung antar angka, waktu eksekusi algoritma ini bisa mendekati linear terhadap jumlah data jika jumlah digit dan rentang digit terbatas, sehingga cocok untuk banyak bilangan bulat seperti ID, nomor invoice, atau kode transaksi.
+
+# 3. Searching
+
+Dalam konteks algoritma, searching diwujudkan sebagai langkah‑langkah sistematis yang memeriksa elemen data dengan strategi tertentu, misalnya mengecek satu per satu (sequential search), melompat ke indeks tertentu (jump search), membagi dua ruang pencarian (binary search), memakai fungsi hash (hash table), atau menelusuri struktur pohon (BST).
+
+## Sorted Search
+
+Sorted search adalah pencarian pada data yang sudah terurut (misal dari kecil ke besar), sehingga algoritma bisa memanfaatkan pola keterurutan ini untuk membuang sebagian besar data di tiap langkah.
+
+### A. Binary Search
+
+Binary search adalah algoritma pencarian pada data yang sudah terurut yang bekerja dengan cara membandingkan target dengan elemen di posisi tengah, lalu membuang setengah bagian data yang pasti tidak mengandung target. Proses ini diulang pada bagian yang tersisa hingga target ditemukan atau interval pencarian menjadi kosong.
+
+#### studi kasus
+
+```{r}
+binary_search <- function(x, target) {
+  left <- 1
+  right <- length(x)
+  while (left <= right) {
+    mid <- (left + right) %/% 2
+    if (x[mid] == target) {
+      return(mid)
+    } else if (target < x[mid]) {
+      right <- mid - 1
+    } else {
+      left <- mid + 1
+    }
+  }
+  return(NA_integer_)
+}
+
+data_sorted <- c(1, 3, 5, 7, 9, 11, 13)
+target <- 3
+idx <- binary_search(data_sorted, target)
+cat("Data:", data_sorted, "\nTarget:", target, "ditemukan di indeks:", idx, "\n")
+```
+
+**output:**
+
+```         
+Data: 1 3 5 7 9 11 13 
+Target: 3 ditemukan di indeks: 2 
+```
+
+Pencarian akan memeriksa elemen tengah, kemudian mengerucut pada bagian kiri hingga menemukan 3 di indeks kedua, sesuai ilustrasi iterasi biner di materi. Algoritma ini sangat efisien dengan kompleksitas sekitar logaritmik terhadap ukuran data, tetapi mensyaratkan bahwa data sudah dalam keadaan terurut sebelum pencarian dilakukan.
+
+### B. Interpolation Search
+
+Interpolation search adalah algoritma pencarian pada data terurut yang memperkirakan posisi target secara lebih cerdas daripada binary search dengan memanfaatkan distribusi nilai data. Alih-alih selalu memilih titik tengah, algoritma ini menghitung posisi perkiraan target menggunakan interpolasi linier, sehingga pada data yang terdistribusi seragam, jumlah langkah pencarian dapat berkurang signifikan.
+
+#### studi kasus
+
+```{r}
+interpolation_search <- function(x, target) {
+  left <- 1
+  right <- length(x)
+  while (left <= right && target >= x[left] && target <= x[right]) {
+    if (left == right) {
+      if (x[left] == target) return(left) else return(NA_integer_)
+    }
+    pos <- left + floor((target - x[left]) * (right - left) / (x[right] - x[left]))
+    if (x[pos] == target) {
+      return(pos)
+    } else if (x[pos] < target) {
+      left <- pos + 1
+    } else {
+      right <- pos - 1
+    }
+  }
+  return(NA_integer_)
+}
+
+data_uniform <- c(10, 20, 30, 40, 50, 60, 70, 80, 90, 100)
+target <- 90
+idx <- interpolation_search(data_uniform, target)
+cat("Data:", data_uniform, "\nTarget:", target, "ditemukan di indeks:", idx, "\n")
+```
+
+**output:**
+
+```         
+Data: 10 20 30 40 50 60 70 80 90 100 
+Target: 90 ditemukan di indeks: 9 
+```
+
+Dengan distribusi nilai yang hampir seragam, posisi yang dihitung akan langsung mendekati indeks ke‑9, sehingga target dapat ditemukan hanya dalam satu atau sangat sedikit iterasi sebagaimana dicontohkan di slide. Namun, jika distribusi data tidak seragam, keunggulan algoritma ini berkurang dan perilakunya dapat mendekati pencarian linear.
+
+### C. Jump Search
+
+Jump search adalah algoritma pencarian pada data terurut yang melompat maju dengan langkah (block size) tertentu untuk menemukan rentang di mana target mungkin berada, kemudian melakukan sequential search di dalam blok tersebut. Dengan memilih ukuran langkah sekitar akar dari jumlah elemen, algoritma ini menyeimbangkan jumlah lompatan dan pencarian linear di dalam blok.
+
+#### studi kasus
+
+```{r}
+jump_search <- function(x, target) {
+  n <- length(x)
+  step <- floor(sqrt(n))  # ukuran lompatan
+  prev <- 1
+  # Lompat sampai melewati atau menemukan rentang
+  while (prev <= n && x[min(step, n)] < target) {
+    prev <- step + 1
+    step <- step + floor(sqrt(n))
+    if (prev > n) return(NA_integer_)
+  }
+  # Sequential search dalam blok
+  for (i in prev:min(step, n)) {
+    if (x[i] == target) return(i)
+  }
+  return(NA_integer_)
+}
+
+data_jump <- c(10, 20, 30, 40, 50, 60, 70, 80)
+target <- 40
+idx <- jump_search(data_jump, target)
+cat("Data:", data_jump, "\nTarget:", target, "ditemukan di indeks:", idx, "\n")
+```
+
+**output:**
+
+```         
+Data: 10 20 30 40 50 60 70 80 
+Target: 40 ditemukan di indeks: 4 
+```
+
+Pada contoh di atas, algoritma akan melompat beberapa kali hingga menemukan blok yang mengandung 40, lalu melakukan pencarian berurutan singkat di dalam blok itu. Pendekatan ini lebih efisien daripada cek satu‑per‑satu seluruh elemen, terutama pada array besar yang sudah terurut, meskipun masih kalah efisien dibanding binary search terhadap jumlah langkah rata‑rata.
+
+## Unsorted Search
+
+Unsorted search adalah pencarian pada data yang belum terurut, jadi algoritmanya tidak bisa “melompat” atau membuang banyak elemen sekaligus dan biasanya harus cek satu per satu.
+
+### A. Sequential Search
+
+Sequential search adalah metode pencarian paling sederhana yang memeriksa setiap elemen dalam struktur data satu per satu dari awal sampai akhir sampai target ditemukan atau data habis. Algoritma ini tidak membutuhkan data dalam keadaan terurut dan cocok digunakan pada struktur data kecil atau ketika kemudahan implementasi lebih penting daripada efisiensi.
+
+#### studi kasus
+
+```{r}
+sequential_search <- function(x, target) {
+  for (i in seq_along(x)) {
+    if (x[i] == target) {
+      return(i)  # kembalikan indeks pertama yang ditemukan
+    }
+  }
+  return(NA_integer_)   # tidak ditemukan
+}
+
+data <- c(7, 5, 1, 9, 3, 5, 2)
+target <- 5
+idx <- sequential_search(data, target)
+cat("Data:", data, "\nTarget:", target, "ditemukan di indeks:", idx, "\n")
+```
+
+**output:**
+
+```         
+Data: 7 5 1 9 3 5 2 
+Target: 5 ditemukan di indeks: 2 
+```
+
+Fungsi di atas mengembalikan indeks pertama tempat nilai 5 ditemukan, yaitu posisi 2 dalam vektor. Perilaku ini sesuai contoh di PDF ketika target ditemukan di tengah array, dan menggambarkan bahwa sequential search bersifat linear terhadap jumlah elemen karena selalu berpotensi mengecek semua data satu per satu.
+
+### B. Hash Table Search
+
+Hash table search adalah metode pencarian yang menggunakan fungsi hash untuk memetakan suatu nilai ke sebuah indeks tertentu di dalam tabel, sehingga pencarian bisa dilakukan hampir seketika tanpa memeriksa elemen satu per satu. Pada praktiknya, tabrakan (collision) dapat terjadi ketika dua nilai berbeda dipetakan ke indeks yang sama, sehingga biasanya digunakan teknik chaining atau metode lain untuk menangani beberapa data dalam satu bucket.
+
+#### studi kasus
+
+```{r}
+build_hash_table <- function(values, m = 5) {
+  table <- vector("list", m)
+  for (v in values) {
+    idx <- (v %% m) + 1  # fungsi hash sederhana
+    table[[idx]] <- c(table[[idx]], v)
+  }
+  table
+}
+
+hash_search <- function(table, target, m = 5) {
+  idx <- (target %% m) + 1
+  bucket <- table[[idx]]
+  if (length(bucket) == 0) return(FALSE)
+  any(bucket == target)
+}
+
+data <- c(7, 5, 1, 9, 3, 14)
+m <- 5
+ht <- build_hash_table(data, m)
+
+cat("Tabel hash:\n")
+print(ht)
+
+target <- 14
+found <- hash_search(ht, target, m)
+cat("Target", target, if (found) "ditemukan\n" else "tidak ditemukan\n")
+```
+
+**output:**
+
+```         
+Tabel hash:
+[[1]]
+[1] 5
+
+[[2]]
+[1] 1
+
+[[3]]
+[1] 7
+
+[[4]]
+[1] 3
+
+[[5]]
+[1]  9 14
+
+Target 14 ditemukan
+```
+
+Nilai 14 dan 9 akan berada pada bucket yang sama sesuai contoh collision di PDF, sehingga saat mencari 14, algoritma langsung melompat ke bucket indeks yang tepat dan hanya melakukan sequential search kecil di dalam bucket tersebut. Cara ini menunjukkan bagaimana hash table dapat mengurangi ruang pencarian drastis, meskipun tetap membutuhkan penanganan saat terjadi tabrakan.
+
+### C. Binary Search Tree(BST) Search
+
+Binary Search Tree search adalah metode pencarian pada struktur data pohon biner terurut, di mana setiap simpul memiliki nilai yang lebih besar dari semua nilai di cabang kirinya dan lebih kecil dari semua nilai di cabang kanannya. Pencarian dilakukan dengan membandingkan target dengan nilai simpul saat ini dan bergerak ke kiri bila target lebih kecil, atau ke kanan bila target lebih besar, sampai target ditemukan atau simpul kosong tercapai.
+
+#### studi kasus
+
+```{r}
+bst_insert <- function(node, value) {
+  if (is.null(node)) {
+    return(list(value = value, left = NULL, right = NULL))
+  }
+  if (value < node$value) {
+    node$left <- bst_insert(node$left, value)
+  } else {
+    node$right <- bst_insert(node$right, value)
+  }
+  node
+}
+
+bst_build <- function(values) {
+  root <- NULL
+  for (v in values) {
+    root <- bst_insert(root, v)
+  }
+  root
+}
+
+bst_search <- function(node, target) {
+  if (is.null(node)) return(FALSE)
+  if (target == node$value) return(TRUE)
+  if (target < node$value) {
+    bst_search(node$left, target)
+  } else {
+    bst_search(node$right, target)
+  }
+}
+
+values <- c(8, 10, 3, 14, 6, 1, 7, 4)
+tree <- bst_build(values)
+target <- 7
+found <- bst_search(tree, target)
+cat("Target", target, if (found) "ditemukan di BST\n" else "tidak ditemukan di BST\n")
+```
+
+**output:**
+
+```         
+Target 7 ditemukan di BST
+```
+
+Pencarian nilai 7 mengikuti jalur 8 → 3 → 6 → 7, persis dengan penelusuran yang digambarkan di PDF. Struktur BST memungkinkan penciutan ruang pencarian di setiap langkah, sehingga jika pohon seimbang, kompleksitas waktu pencarian menjadi logaritmik terhadap jumlah simpul.
+
+# 4. Metode Greedy
+
+Metode greedy adalah pendekatan pemecahan masalah optimasi di mana pada setiap langkah kita selalu memilih solusi terbaik/lokal saat itu (local optimum) dengan harapan pilihan berurutan tersebut akan membawa ke solusi optimal secara keseluruhan (global optimum). Algoritma ini sederhana dan cepat, tetapi tidak selalu menjamin solusi terbaik karena tidak mempertimbangkan konsekuensi jangka panjang.
+
+### Activity Selection
+
+Activity selection adalah masalah greedy klasik untuk memilih sebanyak mungkin aktivitas non-overlapping dari daftar aktivitas yang diberikan, di mana setiap aktivitas memiliki waktu mulai dan selesai. Strategi greedy: urutkan aktivitas berdasarkan waktu selesai paling awal, lalu pilih aktivitas yang waktu mulainya \>= waktu selesai aktivitas sebelumnya.
+
+#### studi kasus
+
+```{r}
+activity_selection <- function(activities) {
+  # activities: list of (start, finish)
+  n <- length(activities)/2
+  # Urutkan berdasarkan waktu selesai
+  sorted_idx <- order(activities[seq(2, n*2, 2)])
+  
+  selected <- c()
+  last_finish <- -Inf
+  
+  for (i in sorted_idx) {
+    start <- activities[2*i-1]
+    finish <- activities[2*i]
+    if (start >= last_finish) {
+      selected <- c(selected, i)
+      last_finish <- finish
+    }
+  }
+  selected
+}
+
+# Data: (start1, finish1, start2, finish2, ...)
+mk = c(1,4, 3,5, 0,6, 5,7, 8,9, 8,11)  # 6 mata kuliah
+selected_mk <- activity_selection(mk)
+cat("Mata kuliah terpilih (indeks):", selected_mk, "\n")
+```
+
+**output**
+
+```         
+Mata kuliah terpilih (indeks): 1 4 5 
+```
+
+Algoritma memilih mata kuliah dengan waktu selesai paling awal (misalnya MK3 selesai jam 6, lalu MK4 mulai jam 8), sehingga bisa ambil maksimal 3 mata kuliah tanpa tumpang tindih. Strategi "selesai paling cepat dulu" memastikan ruang kosong maksimal untuk aktivitas berikutnya.
+
+### Fractional Knapsack
+
+Fractional knapsack memungkinkan mengambil pecahan barang (tidak harus utuh) untuk memaksimalkan nilai total dalam kapasitas tas terbatas. Strategi greedy: urutkan barang berdasarkan rasio nilai/berat (densitas) tertinggi, ambil secara berurutan sampai tas penuh.
+
+#### studi kasus
+
+```{r}
+fractional_knapsack <- function(values, weights, capacity) {
+  n <- length(values)
+  # Hitung densitas (nilai/berat)
+  density <- values / weights
+  # Urutkan berdasarkan densitas menurun
+  idx <- order(-density)
+  
+  total_value <- 0
+  remaining <- capacity
+  
+  for (i in idx) {
+    if (remaining >= weights[i]) {
+      total_value <- total_value + values[i]
+      remaining <- remaining - weights[i]
+    } else {
+      # Ambil pecahan
+      fraction <- remaining / weights[i]
+      total_value <- total_value + fraction * values[i]
+      break
+    }
+  }
+  total_value
+}
+
+values <- c(60, 100, 120)
+weights <- c(10, 20, 30)
+capacity <- 20
+max_value <- fractional_knapsack(values, weights, capacity)
+cat("Nilai maksimum:", max_value, "\n")
+```
+
+**output:**
+
+```         
+Nilai maksimum: 110 
+```
+
+Algoritma ambil barang dengan densitas tertinggi dulu (barang1: 6/kg, barang2: 5/kg, barang3: 4/kg), isi tas 10kg barang1 (nilai 60) + 10kg barang2 (nilai 50), total nilai 110. Greedy terbukti optimal untuk fractional knapsack.
+
+### Dijkstra
+
+Dijkstra mencari jalur terpendek dari simpul asal ke semua simpul lain dalam graf berbobot non-negatif. Strategi greedy: pada setiap langkah, pilih simpul belum dikunjungi dengan jarak terkecil dari asal, update jarak tetangganya.
+
+#### studi kasus
+
+```{r}
+dijkstra <- function(graph, start) {
+  n <- length(graph)
+  distances <- rep(Inf, n)
+  distances[start] <- 0
+  visited <- rep(FALSE, n)
+  
+  for (i in 1:n) {
+    # Cari node belum dikunjungi dengan jarak min
+    min_dist <- Inf
+    u <- -1
+    for (v in 1:n) {
+      if (!visited[v] && distances[v] < min_dist) {
+        min_dist <- distances[v]
+        u <- v
+      }
+    }
+    if (u == -1) break
+    visited[u] <- TRUE
+    
+    # Update tetangga
+    for (v in 1:n) {
+      if (graph[[u]][v] > 0 && !visited[v]) {
+        new_dist <- distances[u] + graph[[u]][v]
+        if (new_dist < distances[v]) {
+          distances[v] <- new_dist
+        }
+      }
+    }
+  }
+  distances
+}
+
+# Graf adjacensi (matriks, 0 = tidak ada edge)
+graph <- list(
+  c(0, 4, 0, 0, 0, 0, 8, 0),  # A
+  c(4, 0, 8, 0, 0, 0, 11, 0), # B
+  c(0, 8, 0, 7, 0, 4, 0, 2),  # C
+  c(0, 0, 7, 0, 9, 14, 0, 0), # D
+  c(0, 0, 0, 9, 0, 10, 0, 0), # E
+  c(0, 0, 4, 14, 10, 0, 2, 24), # F
+  c(8, 11, 0, 0, 0, 2, 0, 7), # G
+  c(0, 0, 2, 0, 0, 24, 7, 0)  # H
+)
+
+distances <- dijkstra(graph, 1)  # Mulai dari A (indeks 1)
+cat("Jarak terpendek dari A:\n")
+print(distances)
+```
+
+**output:**
+
+```         
+Jarak terpendek dari A:
+[1]  0  4 12 19 20 10  8 14
+```
+
+Dijkstra selalu pilih simpul dengan jarak terkecil dari asal di setiap iterasi (greedy choice), update jarak tetangganya jika ada jalur lebih pendek. Algoritma terbukti optimal untuk graf dengan bobot non-negatif.
